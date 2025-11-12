@@ -26,8 +26,8 @@ It fetches real-time weather data for any location in the world and displays cur
 
 ## ⚙️ Setup & Installation
 
-### 1. Clone the repository
-```bash
+### 1. Clone the repository 
+
 git clone https://github.com/<your-username>/weather-app.git
 cd weather-app
 2. Add your WeatherAPI key
