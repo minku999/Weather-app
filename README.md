@@ -2,7 +2,11 @@
 
 A sleek and responsive **Weather App** built using **HTML, CSS, and JavaScript**, powered by the [WeatherAPI](https://www.weatherapi.com/).  
 It fetches real-time weather data for any location in the world and displays current temperature, condition, humidity, wind speed, and more.
+
+
 [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=vercel)](https://indexhtml-lake-three.vercel.app/)
+
+
 
 ## Live Demo
 Check the live demo: **https://indexhtml-lake-three.vercel.app/**
