@@ -30,3 +30,41 @@ It fetches real-time weather data for any location in the world and displays cur
 ```bash
 git clone https://github.com/<your-username>/weather-app.git
 cd weather-app
+2. Add your WeatherAPI key
+
+In the index.html file, replace the existing key with your own:
+
+const apiKey = 'YOUR_API_KEY_HERE';
+
+
+You can get your free key from 👉 https://www.weatherapi.com
+
+3. Run locally
+
+Just open index.html in your browser — no build tools needed.
+
+4. Deploy
+
+Host it easily on:
+
+GitHub Pages
+📸 Preview
+💡 Future Improvements
+
+🌡️ Add a Celsius ↔ Fahrenheit toggle
+
+📅 Add a 5-day forecast section
+
+🕶️ Add a dark/light mode switch
+
+🧭 Integrate geolocation-based auto search
+
+👨‍💻 Author
+
+Mayank - Aspiring Data Scientist
+📍 Passionate about Web Dev, Data, and Building Cool Projects!
+🔗 Connect with me on LinkedIn
+
+🪪 License
+
+This project is licensed under the MIT License — free to use and modify.
