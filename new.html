@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Weather App</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:linear-gradient(135deg,#7dd3fc 0%, #60a5fa 50%, #7c3aed 100%);
+      --glass: rgba(255,255,255,0.03);
+      --muted: #9aa4b2;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.08), transparent), radial-gradient(800px 400px at 90% 90%, rgba(124,58,237,0.06), transparent), var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:#e6eef8}
+    .app{width:min(920px,96vw);padding:24px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 30px rgba(2,6,23,0.6);backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:1fr 360px;gap:20px}
+    @media (max-width:880px){.app{grid-template-columns:1fr;}}
+
+    /* Left: search + results */
+    .panel{padding:20px}
+    h1{margin:0 0 10px;font-size:20px;letter-spacing:-0.2px}
+    .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+
+    .search-row{display:flex;gap:8px}
+    .input-wrap{flex:1;position:relative}
+    input[type="text"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);background:var(--glass);color:inherit;font-size:15px;outline:none}
+    input[type="text"]:focus{box-shadow:0 6px 20px rgba(12,17,23,0.6);}
+    button{padding:0 14px;border-radius:12px;border:none;background:var(--accent);color:#071133;font-weight:600;cursor:pointer}
+
+    .quick{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:rgba(255,255,255,0.03);padding:8px 10px;border-radius:999px;font-size:13px;cursor:pointer}
+
+    .card{margin-top:18px;padding:18px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.03)}
+    .meta{display:flex;align-items:center;gap:14px}
+    .temp{font-size:64px;font-weight:700;line-height:1}
+    .small{color:var(--muted);font-size:13px}
+
+    .details{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+    .stat{background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;min-width:110px}
+    .stat .sval{font-weight:600}
+
+    /* Right: fancy card */
+    .side{padding:20px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .weather-illustration{width:100%;display:flex;align-items:center;justify-content:center;flex-direction:column}
+    .icon{width:120px;height:120px}
+    .location{font-size:18px;font-weight:700;margin-top:12px}
+    .cond{color:var(--muted);margin-top:6px}
+
+    .last{font-size:12px;color:var(--muted);margin-top:10px}
+
+    .error{margin-top:12px;color:#ffd6d6;background:rgba(255,0,0,0.04);padding:10px;border-radius:8px}
+
+    footer{font-size:12px;color:var(--muted);margin-top:14px}
+
+    /* loader */
+    .loader{width:36px;height:36px;border-radius:50%;border:4px solid rgba(255,255,255,0.06);border-top-color:rgba(255,255,255,0.22);animation:spin 1s linear infinite;margin:auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* small helpers */
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Weather app">
+    <div class="panel">
+      <h1>Weather check</h1>
+      <div class="sub">Type a city name, ZIP/postcode, or coordinates. Example: London, 10001, 48.85,2.35</div>
+      <div class="search-row" aria-hidden="false">
+        <div class="input-wrap">
+          <input id="locInput" type="text" placeholder="Enter location (city, postcode or lat,lng)" aria-label="Location input" />
+        </div>
+        <button id="searchBtn">Search</button>
+      </div>
+      <div class="quick" aria-hidden="false">
+        <div class="chip">London</div>
+        <div class="chip">New York</div>
+        <div class="chip">Mumbai</div>
+        <div class="chip">Tokyo</div>
+        <div class="chip">Sydney</div>
+      </div>
+
+      <div id="result" class="card" style="display:none" role="region" aria-live="polite">
+        <div class="meta">
+          <div>
+            <div id="locationName" class="muted">Location</div>
+            <div id="localtime" class="small">Local time</div>
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            <div id="tempC" class="temp">--°C</div>
+            <div class="small" id="feels">Feels like --</div>
+          </div>
+        </div>
+        <div class="details">
+          <div class="stat"><div class="small">Condition</div><div id="condition" class="sval">--</div></div>
+          <div class="stat"><div class="small">Humidity</div><div id="humidity" class="sval">--%</div></div>
+          <div class="stat"><div class="small">Wind</div><div id="wind" class="sval">-- kph</div></div>
+          <div class="stat"><div class="small">Pressure</div><div id="pressure" class="sval">-- mb</div></div>
+        </div>
+      </div>
+
+      <div id="error" style="display:none" class="error" role="alert"></div>
+
+      <footer>Pro tip: press Enter to search. Uses the WeatherAPI current endpoint.</footer>
+    </div>
+
+    <div class="side">
+      <div class="weather-illustration">
+        <img id="iconImg" class="icon" src="" alt="weather icon" style="display:none" />
+        <div id="sideTemp" style="font-size:48px;font-weight:700">--°C</div>
+        <div id="sideLoc" class="location">Your location</div>
+        <div id="sideCond" class="cond">Condition</div>
+        <div id="sideUpdated" class="last">Last updated: --</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration: change apiKey if you want to use a different key
+    const apiKey = '922626bf48b94070a5c82543251111'; // provided by you
+    const baseUrl = 'https://api.weatherapi.com/v1/current.json';
+
+    // DOM
+    const input = document.getElementById('locInput');
+    const btn = document.getElementById('searchBtn');
+    const result = document.getElementById('result');
+    const errorBox = document.getElementById('error');
+
+    const locationName = document.getElementById('locationName');
+    const localtime = document.getElementById('localtime');
+    const tempC = document.getElementById('tempC');
+    const feels = document.getElementById('feels');
+    const condition = document.getElementById('condition');
+    const humidity = document.getElementById('humidity');
+    const wind = document.getElementById('wind');
+    const pressure = document.getElementById('pressure');
+
+    const iconImg = document.getElementById('iconImg');
+    const sideTemp = document.getElementById('sideTemp');
+    const sideLoc = document.getElementById('sideLoc');
+    const sideCond = document.getElementById('sideCond');
+    const sideUpdated = document.getElementById('sideUpdated');
+
+    // Helpers
+    function showError(msg){
+      errorBox.style.display='block';
+      errorBox.textContent = msg;
+      result.style.display = 'none';
+      iconImg.style.display='none';
+    }
+    function clearError(){ errorBox.style.display='none'; errorBox.textContent=''; }
+
+    function showLoaderOnButton(){
+      btn.disabled = true;
+      const prev = btn.innerHTML;
+      btn.dataset.prev = prev;
+      btn.innerHTML = '<div class="loader" aria-hidden="true"></div>';
+    }
+    function hideLoaderOnButton(){
+      btn.disabled = false;
+      if(btn.dataset.prev) btn.innerHTML = btn.dataset.prev;
+    }
+
+    async function fetchWeather(q){
+      clearError();
+      result.style.display='none';
+      iconImg.style.display='none';
+      showLoaderOnButton();
+      try{
+        const url = `${baseUrl}?key=${encodeURIComponent(apiKey)}&q=${encodeURIComponent(q)}&aqi=yes`;
+        const res = await fetch(url);
+        if(!res.ok){
+          if(res.status===400) throw new Error('Bad request — try a different query.');
+          if(res.status===401) throw new Error('Unauthorized — check your API key.');
+          throw new Error('Network error: ' + res.status);
+        }
+        const data = await res.json();
+        // Minimal validation
+        if(!data || !data.location || !data.current) throw new Error('No data returned for that location.');
+
+        // Populate UI
+        const loc = `${data.location.name}${data.location.region?(', '+data.location.region):''}, ${data.location.country}`;
+        locationName.textContent = loc;
+        localtime.textContent = `Local time: ${data.location.localtime}`;
+        tempC.textContent = `${Math.round(data.current.temp_c)}°C`;
+        sideTemp.textContent = `${Math.round(data.current.temp_c)}°C`;
+        feels.textContent = `Feels like ${Math.round(data.current.feelslike_c)}°C`;
+        condition.textContent = data.current.condition.text;
+        sideCond.textContent = data.current.condition.text;
+        humidity.textContent = `${data.current.humidity}%`;
+        wind.textContent = `${data.current.wind_kph} kph ${data.current.wind_dir}`;
+        pressure.textContent = `${data.current.pressure_mb} mb`;
+        sideLoc.textContent = loc;
+        sideUpdated.textContent = `Updated: ${data.current.last_updated}`;
+
+        // icon (WeatherAPI provides a URL that may be protocol-relative)
+        const iconUrl = data.current.condition.icon;
+        if(iconUrl){
+          // ensure full url
+          const full = iconUrl.startsWith('http') ? iconUrl : 'https:' + iconUrl;
+          iconImg.src = full;
+          iconImg.style.display = 'block';
+        }
+
+        result.style.display = 'block';
+
+      }catch(err){
+        console.error(err);
+        showError(err.message || 'Something went wrong');
+      }finally{
+        hideLoaderOnButton();
+      }
+    }
+
+    // Event handlers
+    btn.addEventListener('click', ()=>{
+      const q = input.value.trim();
+      if(!q){ showError('Please enter a location.'); return; }
+      fetchWeather(q);
+    });
+    input.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ btn.click(); } });
+
+    // quick chips
+    document.querySelectorAll('.chip').forEach(el=>{
+      el.addEventListener('click',()=>{ input.value = el.textContent; btn.click(); });
+    });
+
+    // Friendly small UX: try user's locale by default (geolocation optional)
+    (function tryGeolocation(){
+      if(!navigator.geolocation) return;
+      // don't prompt immediately; leave for user — but we can attempt a quick IP-based guess by using a common default like 'auto:ip' is supported by WeatherAPI
+      // We'll fetch 'auto:ip' silently when page loads to show local weather if available
+      fetchWeather('auto:ip');
+    })();
+  </script>
+</body>
+</html>
